@@ -1,0 +1,8 @@
+{
+  "name": "trading",
+  "version": "0.1.0",
+  "description": "Multi-market quant research lab following the Machine Learning for Trading workflow: L1 data, versioned experiment setups with walk-forward validation, execution against bid/ask, and the book's reference code. Research and simulation only.",
+  "author": {
+    "name": "Francisco Correa"
+  }
+}

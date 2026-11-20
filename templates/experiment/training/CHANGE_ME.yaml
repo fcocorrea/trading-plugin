@@ -1,0 +1,17 @@
+# Model menu for ONE label (ML4T ch11-ch13), modeled on the case studies'
+# config/training/<label>.yaml in the book's repository.
+#
+# Rename this file to <label name>.yaml: one menu per label declared in setup.yaml.
+# Every named config is a trial and counts for the Deflated Sharpe Ratio, including the ones that
+# fail or get discarded. Start narrow: the linear baseline first, then climb the model ladder only
+# if the baseline's IC is credibly above zero. Remove configs before running, not after seeing results.
+#
+# Estimators: ols, ridge, lasso, elastic_net, lightgbm (return labels);
+#             logistic, lightgbm_classifier (direction labels). Other keys go to the estimator.
+
+label: CHANGE_ME
+
+models:
+  linear:                           # mandatory baseline every other model must beat
+    baseline:
+      estimator: CHANGE_ME          # e.g. ridge for return labels, logistic for direction labels

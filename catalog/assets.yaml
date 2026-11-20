@@ -1,0 +1,12 @@
+# The plugin declares no assets. Declare them in the WORKSPACE catalog/assets.yaml
+# (or with /trading:add-asset), one entry per symbol:
+#
+#   <SYMBOL>:
+#     market: <market id from markets.yaml>
+#     source: <source id from sources.yaml>
+#     base: <base asset>
+#     quote: <quote asset>
+#     tick_size: <minimum price increment>
+#     lot_size: <minimum quantity increment>
+#     streams: [trades]             # only what the source delivers: trades, quotes
+{}

@@ -1,0 +1,4 @@
+# Keep LF everywhere: the launchers and the hook are bash scripts and break with CRLF.
+* text=auto eol=lf
+*.parquet binary
+*.zip binary

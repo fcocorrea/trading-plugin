@@ -1,0 +1,47 @@
+# Data sources. Capabilities declare what the source ACTUALLY delivers.
+# The engine compares these capabilities with the requirements of each experiment.
+
+binance_um_futures:
+  status: implemented
+  base_url: https://data.binance.vision/data/futures/um
+  integrity: sha256                 # verifies the .CHECKSUM next to the zip
+  datasets:
+    trades: aggTrades
+    quotes: bookTicker              # history not verified: use live `record`
+  capabilities:
+    trades: true
+    quotes: false                   # switch to true only with validated history
+    aggressor_side: true            # is_buyer_maker = true -> seller was the aggressor
+    volume_unit: base               # quantity in the base asset
+    has_ts_recv: false
+  notes: "Public, free historical aggTrades. Live bookTicker with `record`."
+
+generic_csv:
+  status: implemented
+  capabilities:
+    trades: true
+    quotes: true
+    aggressor_side: false           # switch to true if your CSV has a reliable side column
+    volume_unit: base               # base | quote | contracts: the real unit
+    has_ts_recv: false
+  notes: "Your own CSV files in data/raw/generic_csv/{SYMBOL}/{stream}/{YYYY-MM-DD}.csv. Format in skills/add-source."
+
+polygon:
+  status: not_implemented
+  capabilities:
+    trades: true
+    quotes: true
+    aggressor_side: true
+    volume_unit: base
+    has_ts_recv: true
+  notes: "US equities. Check the plan and cost of historical L1 trades/quotes before implementing."
+
+oanda:
+  status: not_implemented
+  capabilities:
+    trades: false
+    quotes: true
+    aggressor_side: false
+    volume_unit: none
+    has_ts_recv: false
+  notes: "OTC forex: its volume is not traded size. It does not meet the volume requirement."

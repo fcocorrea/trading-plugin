@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Engine launcher. Claude Code puts bin/ on the Bash tool's PATH while the plugin is enabled.
+# Interpreter: $TRADING_PYTHON if set; otherwise the venv that /trading:setup creates in engine/.venv.
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+py="${TRADING_PYTHON:-}"
+if [ -z "$py" ]; then
+  for candidate in "$root/engine/.venv/Scripts/python.exe" "$root/engine/.venv/bin/python"; do
+    if [ -x "$candidate" ]; then
+      py="$candidate"
+      break
+    fi
+  done
+fi
+if [ -z "$py" ]; then
+  echo "trading-engine: no interpreter found. Run /trading:setup or set TRADING_PYTHON." >&2
+  exit 127
+fi
+
+export CLAUDE_PLUGIN_ROOT="$root"
+export PYTHONPATH="$root/engine${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONUTF8=1
+exec "$py" -m trading_engine "$@"

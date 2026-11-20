@@ -1,0 +1,20 @@
+# bars_per_year assumes a 24/7 calendar (crypto). Other markets need other values.
+# A timeframe here is a valid decision cadence for setup.yaml.
+"1m":
+  minutes: 1
+  bars_per_year: 525600
+"5m":
+  minutes: 5
+  bars_per_year: 105120
+"15m":
+  minutes: 15
+  bars_per_year: 35040
+"1h":
+  minutes: 60
+  bars_per_year: 8760
+"4h":
+  minutes: 240
+  bars_per_year: 2190
+"1d":
+  minutes: 1440
+  bars_per_year: 365

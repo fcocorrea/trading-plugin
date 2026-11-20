@@ -1,0 +1,36 @@
+# Market profiles. The engine reads these fields; it does not assume rules.
+# status: implemented | not_implemented (a market that is not implemented does not run)
+
+crypto_perp_usdt:
+  implementation: crypto_perp
+  status: implemented
+  session: 24x7
+  contract: linear                  # linear: PnL in USDT
+  short_allowed: true
+  fee_model: maker_taker_bps
+  settlement: funding_8h            # not modeled in v1: a run that needs it fails
+
+crypto_spot_usdt:
+  implementation: crypto_spot
+  status: not_implemented
+  session: 24x7
+  short_allowed: false
+  fee_model: maker_taker_bps
+
+equity_us:
+  implementation: equity
+  status: not_implemented
+  session: us_regular_hours
+  auction_windows: [open, close]
+  short_allowed: restricted         # locates and the uptick rule
+  lot_size: 1
+  fee_model: per_share_or_bps
+
+future_cme:
+  implementation: future
+  status: not_implemented
+  session: globex
+  contract: linear
+  expiry: true
+  margin_model: exchange_span
+  fee_model: per_contract

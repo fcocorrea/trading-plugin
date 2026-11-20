@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Read-only local copy of the code of the book "Machine Learning for Trading" (Stefan Jansen).
+# Partial clone: .py files (jupytext pair of every notebook), READMEs and configs; no .ipynb or data (~40 MB).
+#
+#   ml4t-ref sync [ref]     clone or update (ref: branch, tag or commit; main by default)
+#   ml4t-ref status         path, commit and date of the local copy
+#   ml4t-ref path           absolute path of the copy (for Read/Grep/Glob)
+#   ml4t-ref url <path>     GitHub permalink at the commit of the local copy
+#
+# Location: $ML4T_REPO_DIR, or ~/.cache/ml4t/machine-learning-for-trading.
+set -euo pipefail
+
+REPO_URL="https://github.com/stefan-jansen/machine-learning-for-trading"
+DIR="${ML4T_REPO_DIR:-$HOME/.cache/ml4t/machine-learning-for-trading}"
+SPARSE_PATTERNS=('*.py' '*.md' '*.yaml' '*.yml' '*.toml' '!data/**')
+
+die() { echo "ml4t-ref: $*" >&2; exit 1; }
+
+native_path() {
+  if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s\n' "$1"; fi
+}
+
+require_clone() {
+  [ -d "$DIR/.git" ] || die "no local copy at $DIR. Run: ml4t-ref sync"
+}
+
+cmd_sync() {
+  local ref="${1:-main}"
+  if [ ! -d "$DIR/.git" ]; then
+    mkdir -p "$(dirname "$DIR")"
+    git clone --quiet --depth 1 --filter=blob:none --no-checkout "$REPO_URL.git" "$DIR"
+    git -C "$DIR" sparse-checkout set --no-cone "${SPARSE_PATTERNS[@]}"
+  fi
+  git -C "$DIR" fetch --quiet --depth 1 --filter=blob:none origin "$ref"
+  # The copy is read-only reference: nobody edits it, so it always aligns with the requested ref.
+  git -C "$DIR" checkout --quiet --force --detach FETCH_HEAD
+  cmd_status
+}
+
+cmd_status() {
+  require_clone
+  echo "path:   $(native_path "$DIR")"
+  echo "commit: $(git -C "$DIR" rev-parse HEAD)"
+  echo "date:   $(git -C "$DIR" log -1 --format=%cs)"
+}
+
+cmd_path() {
+  require_clone
+  native_path "$DIR"
+}
+
+cmd_url() {
+  [ $# -eq 1 ] || die "usage: ml4t-ref url <path relative to the repository>"
+  require_clone
+  local rel="${1#./}"
+  [ -e "$DIR/$rel" ] || die "not found in the local copy: $rel"
+  echo "$REPO_URL/blob/$(git -C "$DIR" rev-parse HEAD)/$rel"
+}
+
+case "${1:-}" in
+  sync)   shift; cmd_sync "$@" ;;
+  status) cmd_status ;;
+  path)   cmd_path ;;
+  url)    shift; cmd_url "$@" ;;
+  *)      sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac

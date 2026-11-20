@@ -1,0 +1,27 @@
+# Research environment of the trading plugin. Python 3.12 or newer.
+#   python -m venv engine/.venv
+#   engine/.venv/Scripts/python -m pip install -r requirements.txt   (Windows)
+#   engine/.venv/bin/python -m pip install -r requirements.txt       (macOS/Linux)
+#
+# Exact versions: these are the versions the engine is tested with. The book's ml4t-* libraries
+# are 0.x and their API still moves between releases, so upgrade deliberately and rerun the tests.
+# engine/pyproject.toml keeps the compatible ranges; this file pins the environment.
+
+# Data
+polars==2.1.0
+pyyaml==6.0.3
+requests==2.34.2
+websockets==17.4
+
+# Modeling
+numpy==2.5.5
+scikit-learn==1.9.1
+lightgbm==4.7.0
+
+# Machine Learning for Trading libraries (Stefan Jansen)
+ml4t-specs==0.2.1
+ml4t-diagnostic==0.2.1     # walk-forward folds, rank IC with HAC inference, Deflated Sharpe, FDR
+ml4t-backtest==0.2.0       # event-driven simulation against bid/ask: stops, trailing, partial exits
+
+# Tests
+pytest==9.2.0

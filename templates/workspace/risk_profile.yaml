@@ -1,0 +1,91 @@
+# Personal risk profile. Copy to the root of your workspace (next to CLAUDE.md) and adapt it.
+# Risk tolerance is personal: these are YOUR rules, and every simulation applies them.
+# Where a personal rule and Machine Learning for Trading (ch17, ch19) differ, the book wins;
+# the skills/risk-management skill records each decision and its source.
+# Validate with: trading-engine check-risk
+#
+# Layers:
+# - account:          the simulated account (broker conditions to confirm in the MT5 terminal).
+# - limits:           hard personal rules. trade_management may be stricter, never looser.
+# - kill_switch:      portfolio-level controls with escalation and reinstatement (ch19).
+# - trade_management: how each trade is managed; values are pre-registered priors, calibrated
+#                     only on a calibration window and frozen before evaluation (19_risk_management/11).
+# Every distance is a multiple of ATR, never a fixed amount of price.
+
+profile_version: 2
+
+account:
+  broker: exness
+  type: standard_cent
+  platform: mt5                     # check that the platform offers each symbol you trade
+  currency: USC                     # US cents
+  usc_per_usd: 100
+  initial_balance: 10000            # USC = 100 USD
+  # Confirm in MT5 (Market Watch > Specification, and the account page); null = not confirmed yet.
+  leverage: null                    # e.g. 200 for 1:200
+  margin_call_level_pct: null
+  stop_out_level_pct: null
+  # One entry per symbol you simulate on this account, copied from its MT5 specification:
+  #   <SYMBOL>:
+  #     contract_size: <units of the base asset per 1.00 lot>
+  #     min_lot: <minimum volume>
+  #     lot_step: <volume step>
+  #     max_lot: <maximum volume>
+  #     swap_long: <swap for long positions>
+  #     swap_short: <swap for short positions>
+  symbols: {}
+
+limits:
+  # Fixed fractional sizing (19_risk_management/03): size = equity x risk / stop distance,
+  # rounded DOWN to the lot step; below the minimum lot the trade is skipped, never rounded up.
+  max_risk_per_trade_pct: 1.0       # of equity (the book's portfolio value V), entry to stop, costs included
+  max_total_risk_pct: 3.0           # sum of open risk across the portfolio, each position measured to its current stop
+  max_position_pct: 25.0            # notional of one position as % of equity: the book's concentration cap
+  reward_risk:                      # take-profit distance / stop-loss distance, fixed at entry
+    min: 1.5
+    max: 3.0
+  rsi_filter:                       # pre-registered state gate: no buys when overbought, no sells when oversold
+    period: 14                      # bars of the decision cadence, computed on closed bars only
+    no_buy_above: 70
+    no_sell_below: 30
+
+kill_switch:
+  # Behavior trigger (personal rule): a losing streak pauses new entries, across the whole portfolio.
+  consecutive_losses:
+    losses: 3                       # closed trades with negative net result (after costs)
+    pause: 2h
+    reinstatement: pause_elapsed    # entries resume when the pause ends; the streak counter resets to 0
+  # Performance trigger (ch19, Table 19.7): graduated escalation on drawdown from the equity high-water mark.
+  # A level clears when drawdown recovers below the previous level's threshold; pause and terminate
+  # need an explicit review by the user before trading resumes.
+  drawdown_ladder:
+    - {drawdown_pct: 5,  action: watch}           # more monitoring
+    - {drawdown_pct: 10, action: reduce_risk_50}  # halve risk per trade
+    - {drawdown_pct: 15, action: stop_new}        # no new positions
+    - {drawdown_pct: 20, action: unwind}          # close everything, review required
+    - {drawdown_pct: 30, action: terminate}       # shut the strategy down, review required
+
+volatility:
+  measure: atr
+  period: 14                        # bars of the decision cadence
+  at: entry                         # ATR of the last closed bar before entry, fixed for the life of the trade
+
+trade_management:
+  risk_per_trade_pct: 1.0           # <= limits.max_risk_per_trade_pct
+  stop_loss:                        # mandatory: it defines the risk of the trade and its size
+    atr_multiple: 2.0               # book prior: ATRStopConfig in 19_risk_management/02
+  take_profit:                      # mandatory: it defines the reward/risk ratio at entry
+    atr_multiple: 3.0               # book prior: 3.0 / 2.0 = RR 1.5
+  trailing_stop:
+    enabled: false
+    activation_atr: 1.5             # starts trailing once price moved this far in favor
+    distance_atr: 1.0               # trails this far behind the best price since activation
+  break_even:
+    enabled: false
+    trigger_atr: 1.0                # once price moved this far in favor...
+    offset_atr: 0.1                 # ...the stop moves to entry plus this offset (covers costs)
+  partial_closes:                   # scale-out (19_risk_management/03, section 5)
+    enabled: false
+    levels:                         # close part of the position at each reward/risk level
+      - at_rr: 1.0
+        close_pct: 50               # % of the initial position; the rest exits at take-profit or stop

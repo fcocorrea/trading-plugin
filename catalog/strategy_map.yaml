@@ -1,0 +1,37 @@
+# Strategy map (ML4T ch06): two complementary lenses every experiment must declare.
+# families     = feasibility filters (what breaks first at a given cadence).
+# edge_sources = durability filters (why the edge should persist once known).
+
+families:
+  price_based:
+    dominant_risk: "Turnover and execution at short horizons; episodic drawdowns at long horizons."
+    first_screens: "Robustness to lookback and rebalance choices; turnover-aware costs."
+  fundamental_valuation:
+    dominant_risk: "What the inputs meant at decision time; small effective sample."
+    first_screens: "Point-in-time correctness and coverage."
+  flow_microstructure:
+    dominant_risk: "Timing, latency, fills versus depth."
+    first_screens: "Observability of the signal and executability of the trade."
+  market_mechanics:
+    dominant_risk: "Roll, funding, margin, option payoff."
+    first_screens: "PnL attribution by component; stress tests."
+
+edge_sources:
+  risk_compensation:
+    mechanism: "Holding exposures others avoid (tail, volatility, illiquidity)."
+    durability: high
+  liquidity_provision:
+    mechanism: "Premium for providing immediacy or absorbing inventory."
+    durability: high
+  funding_constraints:
+    mechanism: "Dislocations when capital is scarce."
+    durability: moderate
+  flow_predictability:
+    mechanism: "Positioning ahead of mandated demand (index, hedging flows)."
+    durability: moderate
+  informational_advantage:
+    mechanism: "Better inference from public data."
+    durability: low_to_moderate
+  pure_arbitrage:
+    mechanism: "Mispricing of identical assets."
+    durability: very_low

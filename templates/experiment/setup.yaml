@@ -1,0 +1,75 @@
+# Versioned trading setup (ML4T ch06), modeled on the case studies' config/setup.yaml in the
+# book's repository.
+#
+# These are the invariants of the research program. Explore freely inside them.
+# - Changing a parameter (threshold, top-k, lookback, cost level) keeps the version.
+# - Changing a mechanic (universe, cadence, execution delay, state space, entry logic,
+#   a new cost component, a new stop rule) bumps setup_version and needs a new baseline.
+# Every CHANGE_ME must be replaced: check-experiment refuses the setup otherwise.
+
+strategy_id: CHANGE_ME              # also the experiment folder name
+setup_version: v1
+
+strategy_map:                       # catalog/strategy_map.yaml
+  family: CHANGE_ME                 # price_based | fundamental_valuation | flow_microstructure | market_mechanics
+  edge_source: CHANGE_ME            # risk_compensation | liquidity_provision | funding_constraints | ...
+  pnl_decomposition: [price_pnl, fees, slippage]   # add the market's other components (funding, swaps, roll)
+  failure_modes:                    # the top 2-3 ways this strategy fails
+    - CHANGE_ME
+    - CHANGE_ME
+
+universe:
+  symbols: [CHANGE_ME]              # assets declared in the workspace catalog/assets.yaml
+  market: CHANGE_ME                 # every symbol must belong to it (catalog/markets.yaml)
+  requires: [trades, volume]        # add quotes, aggressor_side or ts_recv when the design needs them
+  eligibility_rule: CHANGE_ME       # point-in-time rule deciding which symbols are tradable at each date
+
+decision:
+  cadence: CHANGE_ME                # decision schedule; must exist in timeframes.yaml
+  bar_type: time                    # how bars are sampled: time | tick | volume | dollar (ch03)
+  snapshot: bar_close               # what is known at decision time
+  execution_delay: next_bar_open    # next_bar_open | next_quote; same-bar fills are look-ahead
+
+mapping:                            # score-to-trade mapping
+  position_state_space: CHANGE_ME   # long_only | short_only | long_short
+  entry_logic: CHANGE_ME            # e.g. rank_top_k, threshold, quantile
+  sizing: fixed_fractional          # from the personal risk profile (risk_profile.yaml)
+
+constraints: {}                     # hard limits beyond the personal risk profile, if any
+
+costs:                              # always on: a result without costs is not a result
+  fee_maker_bps: CHANGE_ME
+  fee_taker_bps: CHANGE_ME
+  slippage_model: CHANGE_ME         # quoted_half_spread (needs quotes) | estimated_half_spread | fixed_bps (+ slippage_bps)
+  sensitivity_bps: [0, 1, 2, 5, 10, 20, 50]   # cost sweep for break-even analysis (ch16, ch18)
+  funding_modeled: false            # markets with settlement events: say whether results include them
+
+labels:                             # purge between train and validation = label horizon (ch06, ch07)
+  - name: CHANGE_ME
+    horizon: CHANGE_ME              # a multiple of the decision cadence
+    target: CHANGE_ME               # return | direction
+    primary: true
+
+features:                           # feature register (ch08): every family is an economic hypothesis
+  families:
+    - name: CHANGE_ME               # also the function name in features.py
+      role: signal                  # signal | state (state conditions how a signal is read)
+      hypothesis: CHANGE_ME
+      inputs: CHANGE_ME             # only what the source delivers
+      lookback: CHANGE_ME           # bars of warm-up the family needs
+      lag: 0                        # extra bars between availability and use
+      failure_mode: CHANGE_ME
+
+metrics:                            # model > signal > strategy diagnostics, in that order (ch06)
+  selection: rank_ic                # model or signal layer only: rank_ic | ic_ir | mse | mae | log_loss | auc | hit_rate
+  report: [rank_ic, ic_ir, net_sharpe, deflated_sharpe, max_drawdown, turnover, break_even_cost_bps]
+
+evaluation:
+  protocol: walk_forward
+  n_splits: CHANGE_ME
+  train_size: CHANGE_ME             # e.g. 365D
+  val_size: CHANGE_ME               # e.g. 90D
+  data_start: CHANGE_ME             # YYYY-MM-DD, first day of data the experiment may use
+  holdout:                          # sealed: evaluated once, after the pipeline is frozen. [start, end)
+    start: CHANGE_ME
+    end: CHANGE_ME
